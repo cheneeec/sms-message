@@ -1,0 +1,22 @@
+spring:
+  data:
+    mongodb:
+      database: sms
+
+logging:
+  level:
+    com.gongsj: debug
+
+
+gongsj:
+  sms:
+    platform:
+      default: yd
+      requestProperty: platform
+
+notifyContent: 你的系统已经欠费
+security:
+  user:
+    name: default
+    password: default
+
