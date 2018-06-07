@@ -7,7 +7,6 @@ import com.gongsj.core.sender.PersistentSaveRepository;
 
 public class LtSmsMessageSender extends AbstractBasicSmsMessageSender {
 
-
     public LtSmsMessageSender(PersistentSaveRepository persistentSaveRepository, SmsPlatformProperties platformProperties) {
         super(persistentSaveRepository, platformProperties);
     }

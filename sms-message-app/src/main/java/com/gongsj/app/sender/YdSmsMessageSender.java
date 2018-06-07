@@ -47,11 +47,20 @@ public class YdSmsMessageSender extends AbstractBasicSmsMessageSender {
     @Override
     public SmsSimpleSendResponse sendMessage(String sysCode, String phoneNumber, String content, String templateId) throws PlatArrearsException {
         Assert.hasText(content, "content is required");
-        Assert.state(remaining!=null, "The remaining amount has not been set");
+        Assert.state(remaining != null, "The remaining amount has not been set");
         remaining.decrementAndGet();
+        //字符超过70算2条
         if (content.length() > 69) {
             remaining.decrementAndGet();
         }
+        //多个号码
+        int phoneNumberCount = phoneNumber.split(",").length;
+
+        while (phoneNumberCount > 1) {
+            remaining.decrementAndGet();
+            phoneNumberCount--;
+        }
+
 
         long remaining = this.remaining.get();
         log.info("yd platform SMS remaining:{}", remaining);
@@ -77,6 +86,7 @@ public class YdSmsMessageSender extends AbstractBasicSmsMessageSender {
                 properties.get("sign") +
                 properties.get("addSerial");
         requestBody.put("mac", DigestUtils.md5DigestAsHex(macValue.getBytes()));
+
         return BASE_64_ENCODER.encode(JSONObject.toJSONString(requestBody).getBytes());
     }
 

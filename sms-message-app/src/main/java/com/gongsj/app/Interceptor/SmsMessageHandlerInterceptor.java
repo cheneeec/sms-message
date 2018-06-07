@@ -79,6 +79,8 @@ public class SmsMessageHandlerInterceptor extends HandlerInterceptorAdapter impl
 
         messageUser.setSpend(messageUser.getSpend() + 1);
 
+        messageUser.setHistorySpend(messageUser.getHistorySpend() + 1);
+
         //是否有必要进行短信提醒
         boolean principalPhone = StringUtils.hasText(messageUser.getPrincipalPhone());
         //判断短信数是否超过
@@ -86,7 +88,7 @@ public class SmsMessageHandlerInterceptor extends HandlerInterceptorAdapter impl
         //判断日期
         List<Date> lastWarnDates = messageUser.getLastWarnDate();
         boolean dateArrived = dateArrived(messageUser, lastWarnDates);
-        if (principalPhone&&excess && dateArrived) {
+        if (principalPhone && excess && dateArrived) {
             executeNotify();
         }
         messageUserService.save(messageUser);
