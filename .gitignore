@@ -70,4 +70,4 @@ testem.log
 Thumbs.db
 
 platform.properties
-package-lock.json
+test
