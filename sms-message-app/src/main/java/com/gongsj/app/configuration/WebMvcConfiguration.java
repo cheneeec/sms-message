@@ -1,4 +1,4 @@
-package com.gongsj.app.config;
+package com.gongsj.app.configuration;
 
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.alibaba.fastjson.support.config.FastJsonConfig;
@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Configuration
-public class WebMvcConfig extends WebMvcConfigurerAdapter {
+public class WebMvcConfiguration extends WebMvcConfigurerAdapter {
 
     @Autowired
     private SmsMessageHandlerInterceptor messageHandlerInterceptor;

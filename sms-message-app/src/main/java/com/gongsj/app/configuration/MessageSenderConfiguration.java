@@ -1,4 +1,4 @@
-package com.gongsj.app.config;
+package com.gongsj.app.configuration;
 
 import com.gongsj.app.entity.SmsMessageRecord;
 import com.gongsj.app.repository.MessageRecordRepository;
@@ -19,11 +19,10 @@ import java.util.Map;
 
 
 @Configuration
-public class MessageSenderConfig {
+public class MessageSenderConfiguration {
 
     @Value("${gongsj.sms.platform.default:yd}")
     private String defaultPlatformPrefix;
-
 
 
 

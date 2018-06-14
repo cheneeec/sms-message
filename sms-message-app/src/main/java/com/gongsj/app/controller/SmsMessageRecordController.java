@@ -3,6 +3,7 @@ package com.gongsj.app.controller;
 
 import com.gongsj.app.entity.SmsMessageRecord;
 import com.gongsj.app.service.SmsMessageRecordService;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.data.domain.Page;
@@ -18,22 +19,19 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/records")
+@AllArgsConstructor
 public class SmsMessageRecordController {
 
-    @Autowired
-    private SmsMessageRecordService messageRecordService;
+    private final SmsMessageRecordService messageRecordService;
 
     @GetMapping("/{id:[a-z|A-Z|0-9]+}")
     public SmsMessageRecord findById(@PathVariable String id) {
-
-
         return messageRecordService.get(id);
     }
 
     @DeleteMapping("/{id:[a-z|A-Z|0-9]+}")
     public void deleteById(@PathVariable String id) {
         messageRecordService.remove(id);
-
     }
 
     @DeleteMapping
@@ -64,12 +62,6 @@ public class SmsMessageRecordController {
         return messageRecordService.groupCountBySendTime(start, end, groupBy);
     }
 
-   /* @GetMapping("/count/sendTime/{start:\\d+}/to/{end:\\d+}")
-    public Map<String, Integer> countBySendTimeAndInterval(@PathVariable Date start,
-                                                           @PathVariable Date end,
-                                                           @RequestParam(defaultValue = "3") int number, ChronoUnit unit) {
-        return messageRecordService.countBySendTimeAndInterval(start, end, number, unit);
-    }*/
 
     @InitBinder
     protected void initBinder(WebDataBinder binder) {
