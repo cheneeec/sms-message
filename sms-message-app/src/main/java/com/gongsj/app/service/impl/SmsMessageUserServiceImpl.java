@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @Service
 public class SmsMessageUserServiceImpl implements SmsMessageUserService {
 
-    private final static Map<String, SmsMessageUser> nativeMessageUsers = new ConcurrentHashMap<>(60);
+    private final static Map<String, SmsMessageUser> cachedMessageUsers = new ConcurrentHashMap<>(60);
 
     private final SmsMessageUserRepository messageUserRepository;
 
@@ -38,11 +38,11 @@ public class SmsMessageUserServiceImpl implements SmsMessageUserService {
         String id = messageUser.getId();
         Assert.hasText(id, "id is empty or null");
         //先从内存中找，没有的话从数据库中查找
-        MessageUser oldSmsMessageUser = Optional.ofNullable(nativeMessageUsers.get(id)).orElse(get(id));
+        MessageUser oldSmsMessageUser = Optional.ofNullable(cachedMessageUsers.get(id)).orElse(get(id));
         Assert.notNull(oldSmsMessageUser, "The MessageUser with id=" + id + " does not exists");
         messageUser.getUsable();
         //保存到内存
-        nativeMessageUsers.put(id, messageUser);
+        cachedMessageUsers.put(id, messageUser);
         //保存到数据库
         return messageUserRepository.save(messageUser);
     }
@@ -54,14 +54,14 @@ public class SmsMessageUserServiceImpl implements SmsMessageUserService {
         Assert.hasText(id, "The id of the object to be saved must be specified");
         //id不能重复
         if (exist(id)) throw new ObjectAlreadyExistException("The MessageUser with id=" + id + " already exists");
-        nativeMessageUsers.put(id, messageUser);
+        cachedMessageUsers.put(id, messageUser);
         messageUserRepository.save(messageUser);
     }
 
     @Override
     public SmsMessageUser get(String id) {
         Assert.hasText(id, "id is empty or null");
-        return Optional.ofNullable(nativeMessageUsers.get(id))
+        return Optional.ofNullable(cachedMessageUsers.get(id))
                 .orElse(messageUserRepository.findOne(id));
     }
 
@@ -73,28 +73,28 @@ public class SmsMessageUserServiceImpl implements SmsMessageUserService {
 
     @Override
     public List<SmsMessageUser> findAll() {
-        return new ArrayList<>(nativeMessageUsers.values());
+        return new ArrayList<>(cachedMessageUsers.values());
     }
 
     @Override
     public List<SmsMessageUser> findAll(Set<String> ids) {
 
-        return nativeMessageUsers.keySet().stream()
+        return cachedMessageUsers.keySet().stream()
                 .filter(ids::contains)
-                .map(nativeMessageUsers::get)
+                .map(cachedMessageUsers::get)
                 .collect(Collectors.toList());
     }
 
     @Override
     public boolean exist(String id) {
         Assert.hasText(id, "id is empty or null");
-        return nativeMessageUsers.get(id) != null || messageUserRepository.exists(id);
+        return cachedMessageUsers.get(id) != null || messageUserRepository.exists(id);
     }
 
     @Override
     public void remove(String id) {
         Assert.hasText(id, "id is empty or null");
-        nativeMessageUsers.remove(id);
+        cachedMessageUsers.remove(id);
         messageUserRepository.delete(id);
     }
 }

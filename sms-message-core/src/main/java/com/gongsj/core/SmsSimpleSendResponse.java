@@ -10,4 +10,10 @@ import lombok.NoArgsConstructor;
 public class SmsSimpleSendResponse {
     private Boolean success;
     private String message;
+    private int consume;
+
+    public SmsSimpleSendResponse(Boolean success, String message) {
+        this.success = success;
+        this.message = message;
+    }
 }

@@ -102,6 +102,7 @@ public class MessageUser {
     }
 
     public int getSpend() {
+
         return spend;
     }
 
@@ -114,6 +115,9 @@ public class MessageUser {
     }
 
     public int getHistorySpend() {
+        if (historySpend < spend) {
+            historySpend = spend;
+        }
         return historySpend;
     }
 

@@ -24,18 +24,19 @@ public class MessageSenderConfiguration {
     @Value("${gongsj.sms.platform.default:yd}")
     private String defaultPlatformPrefix;
 
-
-
     @Bean
-    public MessageSenderManager messageSenderManager(SmsPlatformProperties ltSmsPlatformProperties,
-                                                     SmsPlatformProperties ydSmsPlatformProperties,
-                                                     MessageRecordRepository messageRecordRepository) {
-
-        PersistentSaveRepository persistentSaveRepository = (messageRecord) -> {
+    public PersistentSaveRepository persistentSaveRepository(MessageRecordRepository messageRecordRepository) {
+        return (messageRecord) -> {
             SmsMessageRecord record = new SmsMessageRecord();
             BeanUtils.copyProperties(messageRecord, record);
             messageRecordRepository.save(record);
         };
+    }
+
+    @Bean
+    public MessageSenderManager messageSenderManager(SmsPlatformProperties ltSmsPlatformProperties,
+                                                     SmsPlatformProperties ydSmsPlatformProperties,
+                                                     PersistentSaveRepository persistentSaveRepository) {
 
 
         Map<String, SmsMessageSender> messageSenderMap = new HashMap<>(2);
@@ -52,4 +53,6 @@ public class MessageSenderConfiguration {
 
         return messageSenderManager;
     }
+
+
 }

@@ -1,6 +1,7 @@
 package com.gongsj.core.property;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.HashMap;
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.Map;
  * 封装各个平台发送消息所需要的基本信息。
  */
 @Data
+@NoArgsConstructor
 public class SmsPlatformProperties {
     private String sendApiAddress;//发送消息的API地址
     private String remainingNumberApiAddress;//获得剩余短信数的API地址
@@ -22,6 +24,10 @@ public class SmsPlatformProperties {
     private SendResponseProperty sendResponse = new SendResponseProperty();//发送短信的响应数据
     private RemainingNumberResponseProperty remainingNumberResponse = new RemainingNumberResponseProperty();
 
+
+    public SmsPlatformProperties(String platform) {
+        this.platform = platform;
+    }
 
     @Data
     public static class SendResponseProperty {

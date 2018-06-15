@@ -48,26 +48,18 @@ public class YdSmsMessageSender extends AbstractBasicSmsMessageSender {
     public SmsSimpleSendResponse sendMessage(String sysCode, String phoneNumber, String content, String templateId) throws PlatArrearsException {
         Assert.hasText(content, "content is required");
         Assert.state(remaining != null, "The remaining amount has not been set");
-        remaining.decrementAndGet();
-        //字符超过70算2条
-        if (content.length() > 69) {
+        SmsSimpleSendResponse sendResponse = super.sendMessage(sysCode, phoneNumber, content, templateId);
+        int consume = sendResponse.getConsume();
+        while(consume>1){
             remaining.decrementAndGet();
+            consume--;
         }
-        //多个号码
-        int phoneNumberCount = phoneNumber.split(",").length;
-
-        while (phoneNumberCount > 1) {
-            remaining.decrementAndGet();
-            phoneNumberCount--;
-        }
-
-
         long remaining = this.remaining.get();
         log.info("yd platform SMS remaining:{}", remaining);
         if (remaining < 1) {
             throw new PlatArrearsException();
         }
-        return super.sendMessage(sysCode, phoneNumber, content, templateId);
+        return sendResponse;
     }
 
     @Override

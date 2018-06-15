@@ -6,7 +6,6 @@ import com.gongsj.core.SmsSimpleSendResponse;
 import com.gongsj.core.exception.PlatArrearsException;
 import com.gongsj.core.sender.manager.MessageSenderManager;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 
 
 import lombok.Getter;
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/v1/api/sms")
-@Data
 @AllArgsConstructor
 public class SmsMessageSenderController {
 

@@ -3,7 +3,6 @@ package com.gongsj.core.sender;
 import com.alibaba.fastjson.JSONObject;
 
 
-
 import com.gongsj.core.SmsRemainingNumberResponse;
 import com.gongsj.core.SmsSimpleSendResponse;
 import com.gongsj.core.annotation.MessageResponseProcessorType;
@@ -25,6 +24,8 @@ import org.springframework.util.*;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestOperations;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
 
 
 import java.io.UnsupportedEncodingException;
@@ -96,6 +97,16 @@ public abstract class AbstractBasicSmsMessageSender implements SmsMessageSender 
 
         persistentSaveRepository.save(messageRecord);
 
+        //每超过70算一条
+        int count = ((int) Math.ceil((double) content.length() / 70d));
+        //多个号码
+        int phoneNumberCount = phoneNumber.split(",").length;
+        //总共消耗
+        simpleResponse.setConsume(phoneNumberCount * count);
+
+        //将其放入request中
+        RequestContextHolder.getRequestAttributes().setAttribute("consume", phoneNumberCount * count, RequestAttributes.SCOPE_REQUEST);
+
         return simpleResponse;
     }
 
@@ -128,6 +139,8 @@ public abstract class AbstractBasicSmsMessageSender implements SmsMessageSender 
      * @return 返回 {@link SmsSimpleSendResponse}，当发送消息失败时，记录原因。
      */
     protected SmsSimpleSendResponse doSendMessage(String phoneNumber, String content, String templateId) throws PlatArrearsException {
+
+
         try {
             //响应属性
             final SendResponseProperty response = platformProperties.getSendResponse();
@@ -140,7 +153,6 @@ public abstract class AbstractBasicSmsMessageSender implements SmsMessageSender 
 
 
             String postResponse = restTemplate.postForObject(apiAddress, httpEntity, String.class);
-//            String postResponse = "{\"msgGroup\":\"0529151054001000856046\",\"rspcod\":\"success\",\"success\":true}";
             log.info("SMS sent operation has been completed, returns the result:{},platform:{}", postResponse, platformProperties.getPlatform());
             SmsSimpleSendResponse simpleResponse = getResponseResultProcessor(response.getType()).parse(postResponse, response);
 
@@ -148,6 +160,7 @@ public abstract class AbstractBasicSmsMessageSender implements SmsMessageSender 
             if (StringUtils.isNotBlank(message)) {
                 simpleResponse.setMessage(this.convertCharset(message));
             }
+
             return simpleResponse;
         } catch (RestClientException e) {
             log.error("REQUEST FAILED->{}", e.getMessage());

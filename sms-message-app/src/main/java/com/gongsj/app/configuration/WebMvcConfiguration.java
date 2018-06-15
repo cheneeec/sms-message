@@ -28,7 +28,7 @@ public class WebMvcConfiguration extends WebMvcConfigurerAdapter {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(messageHandlerInterceptor)
-                .addPathPatterns("/v1/api/sms/*");
+                .addPathPatterns("/v1/api/sms/**");
 
     }
 

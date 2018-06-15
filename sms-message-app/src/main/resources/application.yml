@@ -7,7 +7,6 @@ logging:
   level:
     com.gongsj: debug
 
-
 gongsj:
   sms:
     platform:

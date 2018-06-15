@@ -20,6 +20,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
@@ -30,6 +32,7 @@ import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 
 @Component
@@ -55,8 +58,11 @@ public class SmsMessageHandlerInterceptor extends HandlerInterceptorAdapter impl
 
 
     @Override
+    @SuppressWarnings("unchecked")
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        SmsMessageUser messageUser = messageUserService.get(extractMessageUserId(request));
+
+        SmsMessageUser messageUser = messageUserService.get(((Map<String, String>) request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE)).get("sysNo"));
+
         local.set(messageUser);
         if (messageUser == null) {
             throw new IllegalSmsUserException("非法的用户");
@@ -77,9 +83,7 @@ public class SmsMessageHandlerInterceptor extends HandlerInterceptorAdapter impl
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
         SmsMessageUser messageUser = local.get();
 
-        messageUser.setSpend(messageUser.getSpend() + 1);
-
-        messageUser.setHistorySpend(messageUser.getHistorySpend() + 1);
+        int consume = (int) request.getAttribute("consume");
 
         //是否有必要进行短信提醒
         boolean principalPhone = StringUtils.hasText(messageUser.getPrincipalPhone());
@@ -88,9 +92,15 @@ public class SmsMessageHandlerInterceptor extends HandlerInterceptorAdapter impl
         //判断日期
         List<Date> lastWarnDates = messageUser.getLastWarnDate();
         boolean dateArrived = dateArrived(messageUser, lastWarnDates);
+
         if (principalPhone && excess && dateArrived) {
             executeNotify();
+            consume++;
         }
+
+        messageUser.setHistorySpend(messageUser.getHistorySpend() + consume);
+
+        messageUser.setSpend(messageUser.getSpend() + consume);
         messageUserService.save(messageUser);
         //移除本地
         local.remove();
@@ -120,13 +130,6 @@ public class SmsMessageHandlerInterceptor extends HandlerInterceptorAdapter impl
             log.info("Reminder {},id={},Insufficient usable", messageUser.getSystemName(), messageUser.getId());
         }
     }
-
-
-    private String extractMessageUserId(HttpServletRequest request) {
-        String[] requestUris = request.getRequestURI().split("/");
-        return requestUris[requestUris.length - 1];
-    }
-
 
     private final static String getIpAddress(HttpServletRequest request) {
         // 获取请求主机IP地址,如果通过代理进来，则透过防火墙获取真实IP地址
