@@ -2,6 +2,7 @@ package com.gongsj.core.domain;
 
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -26,7 +27,7 @@ public class MessageUser {
     //警告率（/100为）
     private int warningRate = 30;
     //上一次警告时间(保存历史记录)
-    private List<Date> lastWarnDate;
+    private List<Date> lastWarnDate=new ArrayList<>();
     //警告时间间隔（提供默认值，可设置。单位：天）
     private int warningInterval = 10;
     //负责人电话

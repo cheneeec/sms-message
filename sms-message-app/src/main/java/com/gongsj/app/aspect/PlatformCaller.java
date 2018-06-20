@@ -4,10 +4,8 @@ import com.gongsj.app.api.SmsMessageSenderController;
 import com.gongsj.core.sender.SmsMessageSender;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
-import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -28,7 +26,7 @@ import java.util.*;
  *
  * @see SmsMessageSenderController
  */
-@Aspect
+//@Aspect
 //@Component
 @Slf4j
 public class PlatformCaller {

@@ -6,64 +6,45 @@ import com.gongsj.app.exception.IllegalIpAddressException;
 import com.gongsj.app.exception.IllegalSmsUserException;
 
 
-import com.gongsj.app.entity.NotifyContent;
-import com.gongsj.app.repository.NotifyContentRepository;
 import com.gongsj.app.service.SmsMessageUserService;
-import com.gongsj.core.SmsSimpleSendResponse;
 import com.gongsj.core.domain.MessageUser;
-import com.gongsj.core.exception.PlatArrearsException;
-import com.gongsj.core.sender.manager.MessageSenderManager;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.time.DateUtils;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerMapping;
-import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.time.LocalDateTime;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
 
 @Component
 @Slf4j
-public class SmsMessageHandlerInterceptor extends HandlerInterceptorAdapter implements InitializingBean {
+public class SmsMessageHandlerInterceptor extends HandlerInterceptorAdapter {
 
     private final SmsMessageUserService messageUserService;
 
-    private final ThreadLocal<SmsMessageUser> local = new ThreadLocal<>();
-
-    private final MessageSenderManager messageSenderManager;
-
-    private final NotifyContentRepository notifyContentRepository;
 
     @Value("${notifyContent}")
     private String defaultNotifyContent;
 
-    public SmsMessageHandlerInterceptor(SmsMessageUserService messageUserService, MessageSenderManager messageSenderManager, NotifyContentRepository notifyContentRepository) {
+    public SmsMessageHandlerInterceptor(SmsMessageUserService messageUserService) {
         this.messageUserService = messageUserService;
-        this.messageSenderManager = messageSenderManager;
-        this.notifyContentRepository = notifyContentRepository;
+
     }
 
 
     @Override
     @SuppressWarnings("unchecked")
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
 
         SmsMessageUser messageUser = messageUserService.get(((Map<String, String>) request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE)).get("sysNo"));
 
-        local.set(messageUser);
         if (messageUser == null) {
             throw new IllegalSmsUserException("非法的用户");
         }
@@ -79,57 +60,11 @@ public class SmsMessageHandlerInterceptor extends HandlerInterceptorAdapter impl
     }
 
 
-    @Override
-    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
-        SmsMessageUser messageUser = local.get();
 
-        int consume = (int) request.getAttribute("consume");
 
-        //是否有必要进行短信提醒
-        boolean principalPhone = StringUtils.hasText(messageUser.getPrincipalPhone());
-        //判断短信数是否超过
-        boolean excess = (messageUser.getOwn() * ((double) messageUser.getWarningRate() / 100)) > messageUser.getUsable();
-        //判断日期
-        List<Date> lastWarnDates = messageUser.getLastWarnDate();
-        boolean dateArrived = dateArrived(messageUser, lastWarnDates);
 
-        if (principalPhone && excess && dateArrived) {
-            executeNotify();
-            consume++;
-        }
 
-        messageUser.setHistorySpend(messageUser.getHistorySpend() + consume);
 
-        messageUser.setSpend(messageUser.getSpend() + consume);
-        messageUserService.save(messageUser);
-        //移除本地
-        local.remove();
-    }
-
-    private static boolean dateArrived(SmsMessageUser messageUser, List<Date> lastWarnDates) {
-        if (CollectionUtils.isEmpty(lastWarnDates)) {
-            return true;
-        }
-        Date lastWarnDate = lastWarnDates.get(lastWarnDates.size() - 1);
-        Date now = Calendar.getInstance().getTime();
-        Date date = DateUtils.addDays(lastWarnDate, messageUser.getWarningInterval());
-        return date.after(now);
-    }
-
-    private void executeNotify() throws PlatArrearsException {
-        SmsMessageUser messageUser = local.get();
-        String notifyContent = defaultNotifyContent
-                .replaceAll(":systemName", messageUser.getSystemName())
-                .replaceAll(":principalName", messageUser.getPrincipalName())
-                .replaceAll(":now", LocalDateTime.now().toString())
-                .replaceAll(":spend", String.valueOf(messageUser.getSpend()))
-                .replaceAll(":usable", String.valueOf(messageUser.getUsable()))
-                .replaceAll("bf", "%");
-        SmsSimpleSendResponse simpleResponse = messageSenderManager.sendMessage(messageUser.getId(), messageUser.getPrincipalPhone(), notifyContent);
-        if (simpleResponse.getSuccess()) {
-            log.info("Reminder {},id={},Insufficient usable", messageUser.getSystemName(), messageUser.getId());
-        }
-    }
 
     private final static String getIpAddress(HttpServletRequest request) {
         // 获取请求主机IP地址,如果通过代理进来，则透过防火墙获取真实IP地址
@@ -168,12 +103,5 @@ public class SmsMessageHandlerInterceptor extends HandlerInterceptorAdapter impl
         return ip;
     }
 
-    @Override
-    public void afterPropertiesSet() {
-        NotifyContent content = notifyContentRepository.findOne(NotifyContentRepository.NOTIFY_CONTENT_ID);
-        if (content == null) {
-            notifyContentRepository.save(new NotifyContent(NotifyContentRepository.NOTIFY_CONTENT_ID, defaultNotifyContent));
-        }
 
-    }
 }
