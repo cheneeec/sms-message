@@ -24,8 +24,7 @@ import org.springframework.util.*;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestOperations;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
+
 
 
 import java.io.UnsupportedEncodingException;
@@ -104,8 +103,6 @@ public abstract class AbstractBasicSmsMessageSender implements SmsMessageSender 
         //总共消耗
         simpleResponse.setConsume(phoneNumberCount * count);
 
-        //将其放入request中
-        RequestContextHolder.getRequestAttributes().setAttribute("consume", phoneNumberCount * count, RequestAttributes.SCOPE_REQUEST);
 
         return simpleResponse;
     }

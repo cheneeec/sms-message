@@ -5,7 +5,6 @@ import com.gongsj.app.exception.ObjectAlreadyExistException;
 import com.gongsj.app.repository.SmsMessageUserRepository;
 import com.gongsj.app.service.SmsMessageUserService;
 import com.gongsj.core.domain.MessageUser;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,7 +15,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-@AllArgsConstructor
+import static java.util.stream.Collectors.toMap;
+
 @Slf4j
 @Service
 public class SmsMessageUserServiceImpl implements SmsMessageUserService {
@@ -24,6 +24,14 @@ public class SmsMessageUserServiceImpl implements SmsMessageUserService {
     private final static Map<String, SmsMessageUser> cachedMessageUsers = new ConcurrentHashMap<>(60);
 
     private final SmsMessageUserRepository messageUserRepository;
+
+    public SmsMessageUserServiceImpl(SmsMessageUserRepository messageUserRepository) {
+        this.messageUserRepository = messageUserRepository;
+
+        cachedMessageUsers.putAll(messageUserRepository.findByUserStatusNot(MessageUser.SmsUserStatus.DISABLED)
+                .stream()
+                .collect(toMap(MessageUser::getId, a->a)));
+    }
 
 
     @Override

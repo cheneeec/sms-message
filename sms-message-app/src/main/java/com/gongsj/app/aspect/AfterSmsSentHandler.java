@@ -7,7 +7,6 @@ import com.gongsj.app.service.SmsMessageUserService;
 import com.gongsj.core.SmsSimpleSendResponse;
 import com.gongsj.core.exception.PlatArrearsException;
 import com.gongsj.core.sender.manager.MessageSenderManager;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
 import org.aspectj.lang.JoinPoint;

@@ -29,13 +29,11 @@ public class SmsMessageHandlerInterceptor extends HandlerInterceptorAdapter {
 
     private final SmsMessageUserService messageUserService;
 
-
     @Value("${notifyContent}")
     private String defaultNotifyContent;
 
     public SmsMessageHandlerInterceptor(SmsMessageUserService messageUserService) {
         this.messageUserService = messageUserService;
-
     }
 
 
