@@ -50,7 +50,7 @@ public class YdSmsMessageSender extends AbstractBasicSmsMessageSender {
         Assert.state(remaining != null, "The remaining amount has not been set");
         SmsSimpleSendResponse sendResponse = super.sendMessage(sysCode, phoneNumber, content, templateId);
         int consume = sendResponse.getConsume();
-        while(consume>1){
+        while(consume>0){
             remaining.decrementAndGet();
             consume--;
         }
